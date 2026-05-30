@@ -5,7 +5,7 @@
 
 ---
 
-## 🌟 About the Project
+## About the Project
 
 **Bibliotheca** is a web-based library management platform where users can explore books digitally while admins maintain full control over the system.
 
@@ -19,26 +19,26 @@ It simplifies:
 
 ## 🚀 Features
 
-### 📖 Book System
+### Book System
 - Add new books (Admin only)
 - Update & delete books (Admin only)
 - View all books (Members)
 - Organized category system
 
-### 🔍 Smart Search
+### Smart Search
 - Search by title
 - Search by author
 - Search by category
 - Fast and simple filtering
 
-### 👤 Role-Based Access
+### Role-Based Access
 - 🔐 Admin Panel
 - 👨‍🎓 Member Panel
 - Secure access control system
 
 ---
 
-## 🧑‍💼 Admin Panel
+##  Admin Panel
 
 Admins have full control over the system:
 
@@ -50,7 +50,7 @@ Admins have full control over the system:
 
 ---
 
-## 👨‍🎓 Member Panel
+## Member Panel
 
 Members can easily interact with the library:
 
@@ -59,7 +59,4 @@ Members can easily interact with the library:
 - 📘 View book details
 - 🎯 Simple and clean user interface
 
----
 
-
-## 📁 Project Structure

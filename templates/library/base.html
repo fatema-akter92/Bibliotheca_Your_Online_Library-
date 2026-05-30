@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bibliotheca{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--cream:#FAF7F2;--cream-dark:#F0EAE0;--brown-light:#C8A882;--brown:#8B6914;--brown-dark:#5C4A1E;--brown-deep:#3B2F1A;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Lato',sans-serif;background:var(--cream);color:var(--brown-deep);}
+
+        .sidebar{width:240px;min-height:100vh;background:var(--brown-deep);position:fixed;left:0;top:0;display:flex;flex-direction:column;z-index:100;}
+        .sidebar-brand{padding:22px 20px;border-bottom:1px solid rgba(200,168,130,0.15);}
+        .sidebar-brand a{font-family:'Playfair Display',serif;color:var(--brown-light);font-size:1.25rem;text-decoration:none;display:flex;align-items:center;gap:8px;}
+        .sidebar-badge{font-size:0.6rem;background:var(--brown);color:var(--cream);padding:2px 8px;border-radius:20px;font-family:'Lato',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+        .sidebar-nav{padding:12px 0;flex:1;}
+        .nav-sec{padding:14px 20px 5px;font-size:0.63rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(200,168,130,0.35);}
+        .sidebar-nav a{display:flex;align-items:center;gap:11px;padding:10px 20px;color:rgba(250,247,242,0.6);text-decoration:none;font-size:0.875rem;transition:all 0.15s;border-left:3px solid transparent;}
+        .sidebar-nav a:hover,.sidebar-nav a.active{color:var(--cream);background:rgba(200,168,130,0.1);border-left-color:var(--brown-light);}
+        .sidebar-nav a i{width:16px;font-size:0.82rem;opacity:0.8;}
+        .sidebar-footer{padding:14px 20px;border-top:1px solid rgba(200,168,130,0.12);}
+        .sidebar-footer a{display:flex;align-items:center;gap:9px;color:rgba(250,247,242,0.45);text-decoration:none;font-size:0.8rem;transition:color 0.15s;}
+        .sidebar-footer a:hover{color:var(--cream);}
+        .sidebar-user{padding:14px 20px;border-top:1px solid rgba(200,168,130,0.12);display:flex;flex-direction:column;gap:8px;}
+        .sidebar-user span{color:rgba(250,247,242,0.5);font-size:0.75rem;}
+
+        .main-content{margin-left:240px;min-height:100vh;padding:32px 36px;}
+        .page-header{margin-bottom:26px;}
+        .page-header h1{font-family:'Playfair Display',serif;font-size:1.85rem;color:var(--brown-deep);}
+        .page-header p{color:#6B5740;font-size:0.88rem;margin-top:4px;}
+
+        .stat-card{background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:22px;display:flex;align-items:center;gap:15px;transition:all 0.2s;}
+        .stat-card:hover{box-shadow:0 6px 20px rgba(90,60,20,0.1);transform:translateY(-2px);}
+        .stat-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+        .si-brown{background:linear-gradient(135deg,var(--brown-deep),var(--brown));}
+        .si-amber{background:linear-gradient(135deg,#92400e,#d97706);}
+        .si-green{background:linear-gradient(135deg,#065f46,#059669);}
+        .si-red{background:linear-gradient(135deg,#7f1d1d,#dc2626);}
+        .stat-num{font-family:'Playfair Display',serif;font-size:1.75rem;color:var(--brown-deep);line-height:1;}
+        .stat-lbl{font-size:0.72rem;color:#8B7355;text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+
+        .card{background:white;border:1px solid var(--cream-dark);border-radius:14px;overflow:hidden;}
+        .card-header{padding:16px 22px;border-bottom:1px solid var(--cream-dark);display:flex;align-items:center;justify-content:space-between;}
+        .card-header h3{font-family:'Playfair Display',serif;font-size:1rem;color:var(--brown-dark);}
+        .card-body{padding:22px;}
+
+        table{width:100%;border-collapse:collapse;}
+        th{padding:11px 18px;text-align:left;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8B7355;background:var(--cream);border-bottom:1px solid var(--cream-dark);}
+        td{padding:13px 18px;font-size:0.875rem;color:var(--brown-deep);border-bottom:1px solid rgba(240,234,224,0.5);}
+        tr:last-child td{border-bottom:none;}
+        tr:hover td{background:rgba(250,247,242,0.4);}
+
+        .badge{padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;display:inline-block;}
+        .badge-pending{background:#fef3c7;color:#92400e;}
+        .badge-approved{background:#d1fae5;color:#065f46;}
+        .badge-returned{background:#dbeafe;color:#1e40af;}
+        .badge-rejected{background:#fee2e2;color:#7f1d1d;}
+        .badge-available{background:#d1fae5;color:#065f46;}
+        .badge-unavailable{background:#fee2e2;color:#7f1d1d;}
+
+        .btn-brown{background:var(--brown-deep);color:var(--cream);border:none;padding:9px 20px;border-radius:8px;font-size:0.84rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s;}
+        .btn-brown:hover{background:var(--brown);color:white;}
+        .btn-outline{background:transparent;color:var(--brown-dark);border:1.5px solid var(--cream-dark);padding:8px 18px;border-radius:8px;font-size:0.84rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s;}
+        .btn-outline:hover{border-color:var(--brown-light);color:var(--brown);}
+        .btn-green{background:#059669;color:white;border:none;padding:6px 13px;border-radius:6px;font-size:0.77rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s;}
+        .btn-green:hover{background:#047857;color:white;}
+        .btn-red{background:#dc2626;color:white;border:none;padding:6px 13px;border-radius:6px;font-size:0.77rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s;}
+        .btn-red:hover{background:#b91c1c;color:white;}
+        .btn-blue{background:#2563eb;color:white;border:none;padding:6px 13px;border-radius:6px;font-size:0.77rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s;}
+        .btn-blue:hover{background:#1d4ed8;color:white;}
+
+        .alert{padding:11px 16px;border-radius:8px;margin-bottom:18px;font-size:0.875rem;}
+        .alert-success{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;}
+        .alert-error{background:#fee2e2;color:#7f1d1d;border:1px solid #fca5a5;}
+        .alert-warning{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+        .alert-info{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;}
+
+        .form-group{margin-bottom:18px;}
+        .form-group label{display:block;font-size:0.78rem;font-weight:700;color:var(--brown-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.9rem;color:var(--brown-deep);background:var(--cream);outline:none;transition:border-color 0.15s;}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--brown-light);background:white;}
+        .form-group textarea{resize:vertical;min-height:80px;}
+
+        .pending-banner{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:12px;padding:16px 20px;margin-bottom:22px;display:flex;align-items:center;gap:14px;}
+        .pending-banner .pb-icon{font-size:1.8rem;}
+        .pending-banner h4{font-family:'Playfair Display',serif;color:#92400e;font-size:1rem;margin-bottom:3px;}
+        .pending-banner p{color:#78350f;font-size:0.83rem;margin:0;}
+
+        @media(max-width:768px){.sidebar{transform:translateX(-100%)}.main-content{margin-left:0;padding:20px;}}
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <a href="{% if request.user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'member_dashboard' %}{% endif %}">
+            <span>📚</span> Bibliotheca
+            {% if request.user.is_staff %}<span class="sidebar-badge">Admin</span>
+            {% else %}<span class="sidebar-badge">Member</span>{% endif %}
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+        {% if request.user.is_staff %}
+        <div class="nav-sec">Overview</div>
+        <a href="{% url 'admin_dashboard' %}" {% if request.resolver_match.url_name == 'admin_dashboard' %}class="active"{% endif %}><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+
+        <div class="nav-sec">Library</div>
+        <a href="{% url 'book_list' %}" {% if 'book' in request.resolver_match.url_name %}class="active"{% endif %}><i class="fas fa-book"></i> Books</a>
+        <a href="{% url 'category_list' %}" {% if request.resolver_match.url_name == 'category_list' %}class="active"{% endif %}><i class="fas fa-tags"></i> Categories</a>
+
+        <div class="nav-sec">People</div>
+        <a href="{% url 'member_list' %}" {% if request.resolver_match.url_name == 'member_list' %}class="active"{% endif %}><i class="fas fa-users"></i> Members</a>
+
+        <div class="nav-sec">Tools</div>
+        <a href="{% url 'ai_recommender' %}" {% if request.resolver_match.url_name == 'ai_recommender' %}class="active"{% endif %}><i class="fas fa-robot"></i> AI Recommender</a>
+        <a href="{% url 'analytics' %}" {% if request.resolver_match.url_name == 'analytics' %}class="active"{% endif %}><i class="fas fa-chart-bar"></i> Analytics</a>
+
+        <div class="nav-sec">System</div>
+        <a href="/admin" target="_blank"><i class="fas fa-cog"></i> Django Admin Panel</a>
+
+        {% else %}
+        <div class="nav-sec">My Library</div>
+        <a href="{% url 'member_dashboard' %}" {% if request.resolver_match.url_name == 'member_dashboard' %}class="active"{% endif %}><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'member_books' %}" {% if request.resolver_match.url_name == 'member_books' %}class="active"{% endif %}><i class="fas fa-book-open"></i> Browse Books</a>
+        <a href="{% url 'member_history' %}" {% if request.resolver_match.url_name == 'member_history' %}class="active"{% endif %}><i class="fas fa-history"></i> My History</a>
+         
+        <div class="nav-sec">Circulation</div>
+        <a href="{% url 'member_category_list' %}" {% if request.resolver_match.url_name == 'member_category_list' %}class="active"{% endif %}><i class="fas fa-tags"></i> Categories</a>
+        <a href="{% url 'member_reservations' %}" {% if request.resolver_match.url_name == 'member_reservations' %}class="active"{% endif %}><i class="fas fa-calendar-check"></i> Reservations</a>
+        
+        
+        <div class="nav-sec">Discover</div>
+        <a href="{% url 'ai_recommender' %}" {% if request.resolver_match.url_name == 'ai_recommender' %}class="active"{% endif %}><i class="fas fa-robot"></i> AI Recommender</a>
+        <a href="{% url 'analytics' %}" {% if request.resolver_match.url_name == 'analytics' %}class="active"{% endif %}><i class="fas fa-chart-bar"></i> Analytics</a>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-user">
+        <span><i class="fas fa-user" style="margin-right:6px;"></i>{{ request.user.username }}</span>
+        <a href="{% url 'logout' %}" style="color:rgba(250,247,242,0.45);text-decoration:none;font-size:0.8rem;transition:color 0.15s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='rgba(250,247,242,0.45)'">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+<div class="main-content">
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}success{% endif %}">
+            <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

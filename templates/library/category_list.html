@@ -1,0 +1,44 @@
+{% extends 'library/base.html' %}
+{% block title %}Categories — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>Categories</h1><p>Manage book categories</p></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;">
+    <!-- Add Form -->
+    <div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:28px;">
+        <h3 style="font-family:'Playfair Display',serif;color:var(--brown-dark);margin-bottom:20px;">Add Category</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Category Name *</label>
+                <input type="text" name="name" placeholder="e.g. Science Fiction" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" placeholder="Brief description..."></textarea>
+            </div>
+            <button type="submit" class="btn-brown"><i class="fas fa-plus"></i> Add Category</button>
+        </form>
+    </div>
+
+    <!-- Category List -->
+    <div class="card">
+        <div class="card-header"><h3>All Categories ({{ categories.count }})</h3></div>
+        <table>
+            <thead><tr><th>Name</th><th>Books</th><th>Action</th></tr></thead>
+            <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td><strong>{{ cat.name }}</strong>{% if cat.description %}<br><small style="color:#8B7355;">{{ cat.description|truncatechars:50 }}</small>{% endif %}</td>
+                <td><span class="badge badge-approved">{{ cat.book_count }}</span></td>
+                <td><a href="{% url 'category_delete' cat.pk %}" class="btn-red" style="font-size:0.72rem;padding:4px 10px;" onclick="return confirm('Delete this category?')"><i class="fas fa-trash"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" style="text-align:center;color:#8B7355;padding:24px;">No categories yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

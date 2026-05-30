@@ -1,0 +1,76 @@
+{% extends 'library/base.html' %}
+{% block title %}{{ action }} Book — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>{{ action }} Book</h1>
+    <p>{% if action == 'Add' %}Add a new book to the library{% else %}Edit book details{% endif %}</p>
+</div>
+
+<div style="max-width:680px;margin:0 auto;">
+    <div style="background:white;border:1px solid var(--cream-dark);border-radius:16px;padding:36px;">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom:18px;">
+                <label style="display:block;font-weight:700;color:var(--brown-dark);margin-bottom:6px;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">Book Title *</label>
+                <input type="text" name="title" value="{{ book.title|default:'' }}" required
+                    style="width:100%;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.95rem;background:white;outline:none;box-sizing:border-box;"
+                    placeholder="Enter book title">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+                <div class="form-group">
+                    <label style="display:block;font-weight:700;color:var(--brown-dark);margin-bottom:6px;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">Author Name</label>
+                    <input type="text" name="author" value="{{ book.author|default:'' }}"
+                        style="width:100%;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.95rem;background:white;outline:none;box-sizing:border-box;"
+                        placeholder="e.g. John Smith">
+                </div>
+
+                <div class="form-group">
+                    <label style="display:block;font-weight:700;color:var(--brown-dark);margin-bottom:6px;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">Category</label>
+                    <select name="category"
+                        style="width:100%;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.9rem;background:white;outline:none;color:var(--brown-deep);">
+                        <option value="">-- No Category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.pk }}" {% if book.category_id == cat.pk %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+                <div class="form-group">
+                    <label style="display:block;font-weight:700;color:var(--brown-dark);margin-bottom:6px;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">ISBN</label>
+                    <input type="text" name="isbn" value="{{ book.isbn|default:'' }}"
+                        style="width:100%;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.95rem;background:white;outline:none;box-sizing:border-box;"
+                        placeholder="e.g. 978-0-06-112008-4">
+                </div>
+
+                <div class="form-group">
+                    <label style="display:block;font-weight:700;color:var(--brown-dark);margin-bottom:6px;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">Total Copies *</label>
+                    <input type="number" name="total_copies" value="{{ book.total_copies|default:1 }}" min="1" required
+                        style="width:100%;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.95rem;background:white;outline:none;box-sizing:border-box;">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label style="display:block;font-weight:700;color:var(--brown-dark);margin-bottom:6px;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">Description</label>
+                <textarea name="description" rows="4"
+                    style="width:100%;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.95rem;background:white;outline:none;resize:vertical;box-sizing:border-box;"
+                    placeholder="Short description of the book...">{{ book.description|default:'' }}</textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn-brown" style="flex:1;justify-content:center;padding:12px;">
+                    <i class="fas fa-save"></i> {{ action }} Book
+                </button>
+                <a href="{% url 'book_list' %}" class="btn-outline" style="padding:12px 20px;">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

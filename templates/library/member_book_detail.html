@@ -1,0 +1,108 @@
+{% extends 'library/base.html' %}
+{% block title %}{{ book.title }} — Bibliotheca{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:20px;">
+    <a href="{% url 'member_books' %}" style="color:var(--brown);font-weight:700;text-decoration:none;font-size:0.88rem;">
+        <i class="fas fa-arrow-left"></i> Back to Books
+    </a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1.4fr;gap:24px;align-items:start;">
+
+    <div style="background:white;border:1px solid var(--cream-dark);border-radius:16px;padding:32px;text-align:center;">
+        <div style="width:100px;height:100px;background:linear-gradient(135deg,var(--brown-deep),var(--brown));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:3rem;margin:0 auto 20px;">📖</div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--brown-dark);margin-bottom:8px;line-height:1.3;">{{ book.title }}</h1>
+        <p style="color:#625ad8;font-size:0.9rem;margin-bottom:16px;">by {{ book.author|default:"Unknown Author" }}</p>
+
+        {% if book.is_available %}
+        <span class="badge badge-approved" style="font-size:0.85rem;padding:6px 16px;">✅ {{ book.available_copies }} cop{{ book.available_copies|pluralize:"y,ies" }} available</span>
+        {% else %}
+        <span class="badge badge-rejected" style="font-size:0.85rem;padding:6px 16px;">❌ Not Available</span>
+        {% endif %}
+
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--cream-dark);display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center;">
+            <div>
+                <div style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--brown-deep);">{{ book.total_copies }}</div>
+                <div style="font-size:0.72rem;color:#8B7355;text-transform:uppercase;letter-spacing:1px;">Total Copies</div>
+            </div>
+            <div>
+                <div style="font-family:'Playfair Display',serif;font-size:1.6rem;color:#059669;">{{ book.available_copies }}</div>
+                <div style="font-size:0.72rem;color:#8B7355;text-transform:uppercase;letter-spacing:1px;">Available</div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+            {% if member.is_approved %}
+                {% if already_borrowed %}
+                    <div style="padding:12px;background:#fef3c7;border-radius:8px;color:#92400e;font-size:0.85rem;font-weight:700;text-align:center;">
+                        <i class="fas fa-clock"></i> You already have an active request
+                    </div>
+                {% elif already_reserved %}
+                    <div style="padding:12px;background:#dbeafe;border-radius:8px;color:#1e40af;font-size:0.85rem;font-weight:700;text-align:center;">
+                        <i class="fas fa-bookmark"></i> You have reserved this book
+                    </div>
+                {% elif book.is_available %}
+                    <a href="{% url 'borrow_request' book.pk %}" class="btn-brown" style="justify-content:center;padding:12px;">
+                        <i class="fas fa-book"></i> Borrow This Book
+                    </a>
+                {% else %}
+                    <a href="{% url 'reserve_book' book.pk %}" style="padding:12px;background:#1e40af;color:white;border-radius:8px;font-size:0.88rem;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        <i class="fas fa-bookmark"></i> Reserve This Book
+                    </a>
+                {% endif %}
+            {% else %}
+                <div style="padding:12px;background:#fef3c7;border-radius:8px;color:#92400e;font-size:0.85rem;text-align:center;">
+                    Membership approval needed to borrow or reserve
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+        <div style="background:white;border:1px solid var(--cream-dark);border-radius:16px;padding:28px;">
+            <h3 style="font-family:'Playfair Display',serif;color:var(--brown-dark);margin-bottom:18px;font-size:1.1rem;">📋 Book Information</h3>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--cream-dark);">
+                    <span style="font-size:0.82rem;color:#8B7355;text-transform:uppercase;letter-spacing:0.5px;">Title</span>
+                    <span style="font-weight:700;color:var(--brown-dark);font-size:0.9rem;text-align:right;max-width:60%;">{{ book.title }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--cream-dark);">
+                    <span style="font-size:0.82rem;color:#8B7355;text-transform:uppercase;letter-spacing:0.5px;">Author</span>
+                    <span style="font-weight:700;color:var(--brown-dark);font-size:0.9rem;">{{ book.author|default:"Unknown" }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--cream-dark);">
+                    <span style="font-size:0.82rem;color:#8B7355;text-transform:uppercase;letter-spacing:0.5px;">Category</span>
+                    <span style="font-weight:700;color:var(--brown-dark);font-size:0.9rem;">{{ book.category.name|default:"Uncategorized" }}</span>
+                </div>
+                {% if book.isbn %}
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--cream-dark);">
+                    <span style="font-size:0.82rem;color:#8B7355;text-transform:uppercase;letter-spacing:0.5px;">ISBN</span>
+                    <span style="font-weight:700;color:var(--brown-dark);font-size:0.9rem;">{{ book.isbn }}</span>
+                </div>
+                {% endif %}
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--cream-dark);">
+                    <span style="font-size:0.82rem;color:#8B7355;text-transform:uppercase;letter-spacing:0.5px;">Total Copies</span>
+                    <span style="font-weight:700;color:var(--brown-dark);font-size:0.9rem;">{{ book.total_copies }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--cream-dark);">
+                    <span style="font-size:0.82rem;color:#8B7355;text-transform:uppercase;letter-spacing:0.5px;">Available</span>
+                    <span style="font-weight:700;color:{% if book.is_available %}#059669{% else %}#dc2626{% endif %};font-size:0.9rem;">{{ book.available_copies }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                    <span style="font-size:0.82rem;color:#8B7355;text-transform:uppercase;letter-spacing:0.5px;">Added Date</span>
+                    <span style="font-weight:700;color:var(--brown-dark);font-size:0.9rem;">{{ book.added_date|date:"d M Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if book.description %}
+        <div style="background:white;border:1px solid var(--cream-dark);border-radius:16px;padding:28px;">
+            <h3 style="font-family:'Playfair Display',serif;color:var(--brown-dark);margin-bottom:14px;font-size:1.1rem;">📝 Description</h3>
+            <p style="color:#6B5740;line-height:1.7;font-size:0.92rem;">{{ book.description }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

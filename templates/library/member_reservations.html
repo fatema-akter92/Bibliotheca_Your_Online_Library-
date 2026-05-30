@@ -1,0 +1,123 @@
+{% extends 'library/base.html' %}
+{% block title %}My Reservations — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>My Reservations</h1><p>Search and reserve books — get notified when ready</p></div>
+
+<!-- RESERVE A BOOK FORM -->
+<div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:28px;margin-bottom:24px;">
+    <h3 style="font-family:'Playfair Display',serif;color:var(--brown-dark);margin-bottom:18px;">🔍 Reserve a Book</h3>
+
+    {% if member.is_approved %}
+    <form method="GET" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search book by title or author..."
+            style="flex:1;min-width:250px;padding:11px 16px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.9rem;background:var(--cream);outline:none;transition:border-color 0.15s;"
+            onfocus="this.style.borderColor='var(--brown-light)';this.style.background='white'"
+            onblur="this.style.borderColor='var(--cream-dark)';this.style.background='var(--cream)'">
+        <button type="submit" class="btn-brown"><i class="fas fa-search"></i> Search</button>
+        {% if search_query %}<a href="{% url 'member_reservations' %}" class="btn-outline"><i class="fas fa-times"></i> Clear</a>{% endif %}
+    </form>
+
+    {% if search_query %}
+    <div style="margin-top:8px;">
+        <p style="font-size:0.85rem;color:#8B7355;margin-bottom:14px;">
+            Results for "<strong>{{ search_query }}</strong>" — {{ search_results|length }} book(s) found
+        </p>
+        {% if search_results %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+            {% for book in search_results %}
+            <div style="background:var(--cream);border:1px solid var(--cream-dark);border-radius:10px;padding:16px;">
+                <div style="font-size:1.5rem;margin-bottom:8px;">📖</div>
+                <div style="font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--brown-dark);margin-bottom:3px;">{{ book.title }}</div>
+                <div style="font-size:0.78rem;color:#8B7355;margin-bottom:8px;">{{ book.author.name|default:"Unknown" }}</div>
+                {% if book.category %}<div style="font-size:0.7rem;background:white;color:var(--brown);padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:10px;">{{ book.category.name }}</div>{% endif %}
+                <div style="margin-bottom:12px;">
+                    {% if book.is_available %}
+                    <span class="badge badge-available">✅ {{ book.available_copies }} available</span>
+                    {% else %}
+                    <span class="badge badge-unavailable">❌ Not available</span>
+                    {% endif %}
+                </div>
+                {% if book.pk in already_reserved %}
+                    <div style="font-size:0.78rem;color:#1e40af;font-weight:700;text-align:center;padding:8px;background:#dbeafe;border-radius:6px;">
+                        <i class="fas fa-bookmark"></i> Already Reserved
+                    </div>
+                {% elif book.pk in already_borrowed %}
+                    <div style="font-size:0.78rem;color:#065f46;font-weight:700;text-align:center;padding:8px;background:#d1fae5;border-radius:6px;">
+                        <i class="fas fa-book"></i> Already Borrowed
+                    </div>
+                {% elif book.is_available %}
+                    <a href="{% url 'borrow_request' book.pk %}"
+                       class="btn-brown" style="width:100%;justify-content:center;font-size:0.8rem;padding:9px;">
+                        <i class="fas fa-book"></i> Borrow Now
+                    </a>
+                {% else %}
+                    <a href="{% url 'reserve_book' book.pk %}"
+                       style="width:100%;padding:9px;background:#1e40af;color:white;border:none;border-radius:8px;font-size:0.8rem;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;"
+                       onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#1e40af'">
+                        <i class="fas fa-bookmark"></i> Reserve
+                    </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:30px;color:#8B7355;">
+            <div style="font-size:2rem;margin-bottom:8px;">📭</div>
+            <p>No books found matching "{{ search_query }}"</p>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <p style="color:#8B7355;font-size:0.88rem;">Search for a book above to reserve it. You can only reserve books that are currently unavailable.</p>
+    {% endif %}
+
+    {% else %}
+    <div class="pending-banner">
+        <div class="pb-icon">🔖</div>
+        <div>
+            <h4>Membership Required</h4>
+            <p>You need an approved membership to make reservations.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- MY CURRENT RESERVATIONS -->
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>🔖 My Current Reservations</h3></div>
+    <table>
+        <thead><tr><th>Book</th><th>Author</th><th>Reserved On</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for res in reservations %}
+        <tr>
+            <td><strong>{{ res.book.title }}</strong></td>
+            <td style="color:#8B7355;">{{ res.book.author.name|default:"Unknown" }}</td>
+            <td>{{ res.reserved_date|date:"d M Y" }}</td>
+            <td>
+                {% if res.status == 'waiting' %}<span class="badge badge-pending">⏳ Waiting</span>
+                {% elif res.status == 'ready' %}<span class="badge badge-approved">✅ Ready for Pickup!</span>
+                {% elif res.status == 'issued' %}<span class="badge badge-returned">📖 Issued</span>
+                {% elif res.status == 'cancelled' %}<span class="badge badge-rejected">Cancelled</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if res.status == 'waiting' or res.status == 'ready' %}
+                <a href="{% url 'cancel_reservation' res.pk %}" class="btn-red"
+                   style="font-size:0.75rem;padding:5px 12px;"
+                   onclick="return confirm('Cancel this reservation?')">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                {% else %}—{% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;color:#8B7355;padding:30px;">
+            No reservations yet. Search above to reserve a book.
+        </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

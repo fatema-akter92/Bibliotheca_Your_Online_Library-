@@ -1,0 +1,78 @@
+{% extends 'library/base.html' %}
+{% block title %}Reservations — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>Reservation Queue</h1><p>Manage member book reservations</p></div>
+
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;">
+    <div class="stat-card"><div class="stat-icon si-amber">⏳</div><div><div class="stat-num">{{ waiting_count }}</div><div class="stat-lbl">Waiting</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-num">{{ ready_count }}</div><div class="stat-lbl">Ready for Pickup</div></div></div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3>📋 All Reservations</h3></div>
+    <table>
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Book</th>
+                <th>Reserved On</th>
+                <th>Book Available</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for res in all_reservations %}
+        <tr>
+            <td><strong>{{ res.member.user.get_full_name|default:res.member.user.username }}</strong></td>
+            <td>
+                {{ res.book.title }}<br>
+                <small style="color:#8B7355;">{{ res.book.author }}</small>
+            </td>
+            <td>{{ res.reserved_date|date:"d M Y" }}</td>
+            <td>
+                {% if res.book.is_available %}
+                    <span class="badge badge-available">{{ res.book.available_copies }} available</span>
+                {% else %}
+                    <span class="badge badge-unavailable">Not available</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if res.status == 'waiting' %}
+                    <span class="badge badge-pending">⏳ Waiting</span>
+                {% elif res.status == 'ready' %}
+                    <span class="badge badge-approved">✅ Ready</span>
+                {% elif res.status == 'issued' %}
+                    <span class="badge badge-returned">📖 Issued</span>
+                {% elif res.status == 'cancelled' %}
+                    <span class="badge badge-rejected">Cancelled</span>
+                {% endif %}
+            </td>
+            <td style="display:flex;gap:8px;">
+                {% if res.status == 'ready' and res.book.is_available %}
+                <a href="{% url 'issue_reserved' res.pk %}" class="btn-green">
+                    <i class="fas fa-check"></i> Issue Now
+                </a>
+                {% endif %}
+                {% if res.status == 'waiting' or res.status == 'ready' %}
+                <a href="{% url 'cancel_reservation_admin' res.pk %}" class="btn-red"
+                   onclick="return confirm('Cancel this reservation?')"
+                   style="font-size:0.75rem;padding:5px 12px;">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align:center;color:#8B7355;padding:40px;">
+                <div style="font-size:2.5rem;margin-bottom:10px;">📋</div>
+                No reservations yet.
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'library/base.html' %}
+{% block title %}Authors — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>Authors</h1><p>Explore all authors in our library</p></div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;">
+{% for author in authors %}
+<div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:24px;transition:all 0.2s;"
+    onmouseover="this.style.boxShadow='0 8px 24px rgba(90,60,20,0.12)';this.style.transform='translateY(-2px)'"
+    onmouseout="this.style.boxShadow='';this.style.transform=''">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--brown-deep),var(--brown));border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--cream);font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:14px;">
+        {{ author.name.0|upper }}
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--brown-dark);margin-bottom:6px;">{{ author.name }}</div>
+    {% if author.bio %}
+    <div style="font-size:0.82rem;color:#6B5740;line-height:1.6;margin-bottom:12px;">{{ author.bio|truncatechars:100 }}</div>
+    {% endif %}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--cream-dark);">
+        <span class="badge badge-approved">{{ author.book_count }} book{{ author.book_count|pluralize }}</span>
+        <a href="{% url 'member_books' %}?search={{ author.name }}" style="color:var(--brown);font-size:0.78rem;font-weight:700;text-decoration:none;">View books →</a>
+    </div>
+</div>
+{% empty %}
+<div style="grid-column:1/-1;text-align:center;padding:60px;color:#8B7355;">
+    <div style="font-size:3rem;margin-bottom:12px;">✍️</div>
+    <p>No authors added yet.</p>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

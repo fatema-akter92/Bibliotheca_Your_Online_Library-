@@ -1,0 +1,142 @@
+{% extends 'library/base.html' %}
+{% block title %}My Profile — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>My Profile</h1><p>Your personal information and library activity</p></div>
+
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:22px;align-items:start;">
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+        <div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:28px;text-align:center;">
+            <div style="width:80px;height:80px;background:linear-gradient(135deg,var(--brown-deep),var(--brown));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--cream);margin:0 auto 16px;">
+                {{ member.user.first_name.0|default:member.user.username.0|upper }}
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--brown-deep);margin-bottom:4px;">
+                {{ member.user.get_full_name|default:member.user.username }}
+            </h2>
+            <p style="color:#8B7355;font-size:0.85rem;">@{{ member.user.username }}</p>
+            <div style="margin-top:12px;">
+                {% if member.is_approved %}
+                    <span class="badge badge-approved">✅ Active Member</span>
+                {% else %}
+                    <span class="badge badge-pending">⏳ Pending Approval</span>
+                {% endif %}
+            </div>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--cream-dark);display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center;">
+                <div>
+                    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--brown-deep);">{{ total_borrowed }}</div>
+                    <div style="font-size:0.72rem;color:#8B7355;text-transform:uppercase;letter-spacing:1px;">Total Borrowed</div>
+                </div>
+                <div>
+                    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#059669;">{{ total_returned }}</div>
+                    <div style="font-size:0.72rem;color:#8B7355;text-transform:uppercase;letter-spacing:1px;">Returned</div>
+                </div>
+            </div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--cream-dark);">
+                <div style="font-size:0.82rem;color:#6B5740;"><i class="fas fa-calendar" style="margin-right:6px;"></i> Member since {{ member.joined_date|date:"d M Y" }}</div>
+                {% if member.phone %}<div style="font-size:0.82rem;color:#6B5740;margin-top:6px;"><i class="fas fa-phone" style="margin-right:6px;"></i> {{ member.phone }}</div>{% endif %}
+                {% if member.address %}<div style="font-size:0.82rem;color:#6B5740;margin-top:6px;"><i class="fas fa-map-marker-alt" style="margin-right:6px;"></i> {{ member.address|truncatechars:40 }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:28px;">
+            <h3 style="font-family:'Playfair Display',serif;color:var(--brown-dark);margin-bottom:18px;">Edit Information</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="first_name" value="{{ member.user.first_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name" value="{{ member.user.last_name }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ member.user.email }}">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" name="phone" value="{{ member.phone }}">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea name="address">{{ member.address }}</textarea>
+                </div>
+                <button type="submit" class="btn-brown" style="width:100%;justify-content:center;"><i class="fas fa-save"></i> Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+            <div class="stat-card"><div class="stat-icon si-brown">📖</div><div><div class="stat-num">{{ active_borrows.count }}</div><div class="stat-lbl">Active</div></div></div>
+            <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-num">{{ total_returned }}</div><div class="stat-lbl">Returned</div></div></div>
+            <div class="stat-card"><div class="stat-icon si-red">💰</div><div><div class="stat-num">৳{{ total_fines|floatformat:0 }}</div><div class="stat-lbl">Fines</div></div></div>
+        </div>
+
+        {% if active_borrows %}
+        <div class="card">
+            <div class="card-header"><h3>📖 Currently Borrowed</h3></div>
+            <table>
+                <thead><tr><th>Book</th><th>Due Date</th><th>Fine</th></tr></thead>
+                <tbody>
+                {% for r in active_borrows %}
+                <tr>
+                    <td><strong>{{ r.book.title }}</strong><br><small style="color:#8B7355;">{{ r.book.author }}</small></td>
+                    <td>{{ r.due_date|date:"d M Y" }}{% if r.due_date < today %} <span class="badge badge-rejected">Overdue</span>{% endif %}</td>
+                    <td>{% if r.fine > 0 %}<strong style="color:#dc2626;">৳{{ r.fine }}</strong>{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if reservations %}
+        <div class="card">
+            <div class="card-header">
+                <h3>🔖 My Reservations</h3>
+                <a href="{% url 'member_reservations' %}" style="color:var(--brown);font-size:0.82rem;text-decoration:none;font-weight:700;">View all →</a>
+            </div>
+            <table>
+                <thead><tr><th>Book</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for res in reservations %}
+                <tr>
+                    <td><strong>{{ res.book.title }}</strong></td>
+                    <td>{{ res.reserved_date|date:"d M Y" }}</td>
+                    <td><span class="badge badge-{{ res.status }}">{{ res.get_status_display }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h3>📚 Borrow History</h3>
+                <a href="{% url 'member_history' %}" style="color:var(--brown);font-size:0.82rem;text-decoration:none;font-weight:700;">View all →</a>
+            </div>
+            <table>
+                <thead><tr><th>Book</th><th>Status</th><th>Date</th><th>Fine</th></tr></thead>
+                <tbody>
+                {% for r in all_borrows %}
+                <tr>
+                    <td><strong>{{ r.book.title }}</strong></td>
+                    <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+                    <td>{{ r.request_date|date:"d M Y" }}</td>
+                    <td>{% if r.fine > 0 %}<strong style="color:#dc2626;">৳{{ r.fine }}</strong>{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align:center;color:#8B7355;padding:24px;">No history yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

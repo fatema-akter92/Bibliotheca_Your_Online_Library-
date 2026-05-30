@@ -1,0 +1,148 @@
+{% extends 'library/base.html' %}
+{% block title %}Categories — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>📂 Browse by Category</h1><p>Explore books by genre and category</p></div>
+
+<div style="display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start;">
+
+    <!-- LEFT: Category List -->
+    <div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;overflow:hidden;position:sticky;top:20px;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--cream-dark);background:var(--cream);">
+            <h3 style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--brown-dark);">All Categories</h3>
+        </div>
+        <div style="padding:8px 0;">
+            <a href="{% url 'member_category_list' %}"
+               style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;text-decoration:none;transition:background 0.15s;
+               {% if not selected_category %}background:rgba(200,168,130,0.15);border-left:3px solid var(--brown-light);{% else %}border-left:3px solid transparent;{% endif %}">
+                <span style="font-size:0.88rem;{% if not selected_category %}color:var(--brown-deep);font-weight:700;{% else %}color:#6B5740;{% endif %}">
+                    <i class="fas fa-th-large" style="margin-right:8px;opacity:0.7;"></i> All Books
+                </span>
+            </a>
+            {% for cat in categories %}
+            <a href="?cat={{ cat.pk }}"
+               style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;text-decoration:none;transition:background 0.15s;
+               {% if selected_category.pk == cat.pk %}background:rgba(200,168,130,0.15);border-left:3px solid var(--brown-light);{% else %}border-left:3px solid transparent;{% endif %}"
+               onmouseover="this.style.background='rgba(200,168,130,0.08)'"
+               onmouseout="this.style.background='{% if selected_category.pk == cat.pk %}rgba(200,168,130,0.15){% else %}transparent{% endif %}'">
+                <span style="font-size:0.88rem;{% if selected_category.pk == cat.pk %}color:var(--brown-deep);font-weight:700;{% else %}color:#6B5740;{% endif %}">
+                    <i class="fas fa-tag" style="margin-right:8px;opacity:0.7;"></i> {{ cat.name }}
+                </span>
+                <span style="font-size:0.72rem;background:var(--cream);color:#8B7355;padding:2px 8px;border-radius:10px;">{{ cat.book_count }}</span>
+            </a>
+            {% empty %}
+            <div style="padding:20px;text-align:center;color:#8B7355;font-size:0.88rem;">No categories yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RIGHT: Books -->
+    <div>
+        {% if selected_category %}
+        <div style="margin-bottom:20px;">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--brown-deep);">
+                {{ selected_category.name }}
+            </h2>
+            {% if selected_category.description %}
+            <p style="color:#6B5740;font-size:0.88rem;margin-top:4px;">{{ selected_category.description }}</p>
+            {% endif %}
+            <p style="color:#8B7355;font-size:0.82rem;margin-top:6px;">{{ category_books|length }} book(s) in this category</p>
+        </div>
+
+        {% if category_books %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+            {% for book in category_books %}
+            <div style="background:white;border:1px solid var(--cream-dark);border-radius:12px;padding:20px;transition:all 0.2s;"
+                onmouseover="this.style.boxShadow='0 6px 20px rgba(90,60,20,0.1)';this.style.transform='translateY(-2px)'"
+                onmouseout="this.style.boxShadow='';this.style.transform=''">
+                <div style="font-size:2.2rem;margin-bottom:10px;">📖</div>
+                <div style="font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--brown-dark);margin-bottom:4px;line-height:1.3;">{{ book.title }}</div>
+                <div style="font-size:0.78rem;color:#8B7355;margin-bottom:10px;">{{ book.author.name|default:"Unknown Author" }}</div>
+                <div style="margin-bottom:12px;">
+                    {% if book.is_available %}
+                    <span class="badge badge-available">{{ book.available_copies }} available</span>
+                    {% else %}
+                    <span class="badge badge-unavailable">Not available</span>
+                    {% endif %}
+                </div>
+                {% if member.is_approved %}
+                    {% if book.pk in member_borrow_requests %}
+                        <div style="font-size:0.75rem;color:#8B7355;font-weight:700;text-align:center;padding:7px;background:var(--cream);border-radius:6px;">
+                            <i class="fas fa-clock"></i> Request Sent
+                        </div>
+                    {% elif book.pk in member_reserved_books %}
+                        <div style="font-size:0.75rem;color:#1e40af;font-weight:700;text-align:center;padding:7px;background:#dbeafe;border-radius:6px;">
+                            <i class="fas fa-bookmark"></i> Reserved
+                        </div>
+                    {% elif book.is_available %}
+                        <a href="{% url 'borrow_request' book.pk %}" class="btn-brown"
+                           style="width:100%;justify-content:center;font-size:0.78rem;padding:8px;">
+                            <i class="fas fa-book"></i> Borrow
+                        </a>
+                    {% else %}
+                        <a href="{% url 'reserve_book' book.pk %}"
+                           style="width:100%;padding:8px;background:#1e40af;color:white;border:none;border-radius:8px;font-size:0.78rem;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;"
+                           onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#1e40af'">
+                            <i class="fas fa-bookmark"></i> Reserve
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div style="font-size:0.72rem;color:#92400e;background:#fef3c7;padding:7px;border-radius:6px;text-align:center;">
+                        Membership needed
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:60px;background:white;border:1px solid var(--cream-dark);border-radius:14px;color:#8B7355;">
+            <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+            <p>No books in this category yet.</p>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Show all categories with their books -->
+        {% for cat in categories %}
+        {% if cat.book_count > 0 %}
+        <div style="margin-bottom:32px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <h2 style="font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--brown-dark);">
+                    🏷️ {{ cat.name }}
+                    <span style="font-size:0.78rem;font-weight:400;color:#8B7355;margin-left:8px;">{{ cat.book_count }} books</span>
+                </h2>
+                <a href="?cat={{ cat.pk }}" style="color:var(--brown);font-size:0.82rem;font-weight:700;text-decoration:none;">View all →</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;">
+                {% for book in cat.books.all|slice:":4" %}
+                <div style="background:white;border:1px solid var(--cream-dark);border-radius:10px;padding:16px;">
+                    <div style="font-size:1.8rem;margin-bottom:8px;">📖</div>
+                    <div style="font-family:'Playfair Display',serif;font-size:0.88rem;color:var(--brown-dark);margin-bottom:3px;line-height:1.3;">{{ book.title|truncatechars:30 }}</div>
+                    <div style="font-size:0.75rem;color:#8B7355;margin-bottom:8px;">{{ book.author.name|default:"Unknown" }}</div>
+                    {% if book.is_available %}
+                    <span class="badge badge-available" style="font-size:0.68rem;">{{ book.available_copies }} available</span>
+                    {% else %}
+                    <span class="badge badge-unavailable" style="font-size:0.68rem;">Not available</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if cat.book_count > 4 %}
+                <a href="?cat={{ cat.pk }}"
+                   style="background:var(--cream);border:2px dashed var(--cream-dark);border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:var(--brown);font-size:0.82rem;font-weight:700;">
+                    <i class="fas fa-plus" style="font-size:1.2rem;margin-bottom:6px;"></i>
+                    +{{ cat.book_count|add:"-4" }} more
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% empty %}
+        <div style="text-align:center;padding:80px;background:white;border:1px solid var(--cream-dark);border-radius:14px;color:#8B7355;">
+            <div style="font-size:4rem;margin-bottom:16px;">📚</div>
+            <p>No categories yet.</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

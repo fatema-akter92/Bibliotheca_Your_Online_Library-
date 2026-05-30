@@ -1,0 +1,66 @@
+{% extends 'library/base.html' %}
+{% block title %}AI Recommender — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>🤖 AI Book Recommender</h1><p>Powered by Gemini AI — get personalized picks</p></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;">
+    <div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:28px;">
+        <h3 style="font-family:'Playfair Display',serif;color:var(--brown-dark);margin-bottom:8px;">What are you looking for?</h3>
+        <p style="color:#6B5740;font-size:0.87rem;margin-bottom:20px;">Describe your mood, genre preference, or a book you loved.</p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Your Request</label>
+                <textarea name="prompt" rows="4" placeholder="e.g. I want something thrilling and mysterious, similar to Sherlock Holmes..."></textarea>
+            </div>
+            <button type="submit" class="btn-brown" style="width:100%;justify-content:center;"><i class="fas fa-robot"></i> Get Recommendations</button>
+        </form>
+        <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--cream-dark);">
+            <p style="font-size:0.75rem;color:#8B7355;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Try asking:</p>
+            <div onclick="document.querySelector('textarea[name=prompt]').value='I want a sci-fi adventure'"
+                style="background:var(--cream);border-radius:7px;padding:7px 12px;font-size:0.83rem;color:var(--brown-dark);cursor:pointer;margin-bottom:6px;transition:background 0.15s;"
+                onmouseover="this.style.background='var(--cream-dark)'" onmouseout="this.style.background='var(--cream)'">
+                💬 I want a sci-fi adventure
+            </div>
+            <div onclick="document.querySelector('textarea[name=prompt]').value='Something romantic and light'"
+                style="background:var(--cream);border-radius:7px;padding:7px 12px;font-size:0.83rem;color:var(--brown-dark);cursor:pointer;margin-bottom:6px;transition:background 0.15s;"
+                onmouseover="this.style.background='var(--cream-dark)'" onmouseout="this.style.background='var(--cream)'">
+                💬 Something romantic and light
+            </div>
+            <div onclick="document.querySelector('textarea[name=prompt]').value='A mystery thriller'"
+                style="background:var(--cream);border-radius:7px;padding:7px 12px;font-size:0.83rem;color:var(--brown-dark);cursor:pointer;margin-bottom:6px;transition:background 0.15s;"
+                onmouseover="this.style.background='var(--cream-dark)'" onmouseout="this.style.background='var(--cream)'">
+                💬 A mystery thriller
+            </div>
+            <div onclick="document.querySelector('textarea[name=prompt]').value='Classic literature'"
+                style="background:var(--cream);border-radius:7px;padding:7px 12px;font-size:0.83rem;color:var(--brown-dark);cursor:pointer;margin-bottom:6px;transition:background 0.15s;"
+                onmouseover="this.style.background='var(--cream-dark)'" onmouseout="this.style.background='var(--cream)'">
+                💬 Classic literature
+            </div>
+            <div onclick="document.querySelector('textarea[name=prompt]').value='Self-improvement books'"
+                style="background:var(--cream);border-radius:7px;padding:7px 12px;font-size:0.83rem;color:var(--brown-dark);cursor:pointer;margin-bottom:6px;transition:background 0.15s;"
+                onmouseover="this.style.background='var(--cream-dark)'" onmouseout="this.style.background='var(--cream)'">
+                💬 Self-improvement books
+            </div>
+        </div>
+    </div>
+
+    <div>
+        {% if recommendation %}
+        <div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:28px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--brown-deep),var(--brown));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">🤖</div>
+                <h3 style="font-family:'Playfair Display',serif;color:var(--brown-dark);">Claude's Picks</h3>
+            </div>
+            <div style="font-size:0.9rem;color:var(--brown-deep);line-height:1.8;white-space:pre-wrap;">{{ recommendation }}</div>
+        </div>
+        {% else %}
+        <div style="background:var(--cream);border:2px dashed var(--cream-dark);border-radius:14px;padding:50px 30px;text-align:center;">
+            <div style="font-size:3rem;margin-bottom:14px;">📚</div>
+            <p style="color:#8B7355;font-size:0.9rem;">Your AI recommendations will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

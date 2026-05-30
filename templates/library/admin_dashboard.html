@@ -1,0 +1,193 @@
+{% extends 'library/base.html' %}
+{% block title %}Admin Dashboard — Bibliotheca{% endblock %}
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>Admin Dashboard</h1>
+    <p>Manage members, books, and borrow requests</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;">
+    <div class="stat-card"><div class="stat-icon si-brown">📚</div><div><div class="stat-num">{{ total_books }}</div><div class="stat-lbl">Total Books</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-amber">👥</div><div><div class="stat-num">{{ total_members }}</div><div class="stat-lbl">Active Members</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red">⏳</div><div><div class="stat-num">{{ total_pending_members }}</div><div class="stat-lbl">Pending Members</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">📋</div><div><div class="stat-num">{{ total_pending_borrows }}</div><div class="stat-lbl">Borrow Requests</div></div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+    <div class="stat-card"><div class="stat-icon si-green">📚</div><div><div class="stat-num">{{ available_books }}</div><div class="stat-lbl">Available Books</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red">⚠️</div><div><div class="stat-num">{{ overdue_count }}</div><div class="stat-lbl">Overdue</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">📤</div><div><div class="stat-num">{{ issued_today }}</div><div class="stat-lbl">Issued Today</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-brown">📥</div><div><div class="stat-num">{{ returned_today }}</div><div class="stat-lbl">Returned Today</div></div></div>
+</div>
+
+{% if pending_members %}
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>⏳ Pending Membership Approvals ({{ pending_members.count }})</h3></div>
+    <table>
+        <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for m in pending_members %}
+        <tr>
+            <td><strong>{{ m.user.get_full_name|default:m.user.username }}</strong></td>
+            <td>{{ m.user.username }}</td>
+            <td>{{ m.user.email|default:"—" }}</td>
+            <td>{{ m.phone|default:"—" }}</td>
+            <td>{{ m.joined_date|date:"d M Y" }}</td>
+            <td style="display:flex;gap:8px;">
+                <a href="{% url 'approve_member' m.pk %}" class="btn-green"><i class="fas fa-check"></i> Approve</a>
+                <a href="{% url 'reject_member' m.pk %}" class="btn-red" onclick="return confirm('Reject and delete this user?')"><i class="fas fa-times"></i> Reject</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if pending_borrows %}
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>📋 Borrow Requests ({{ pending_borrows.count }})</h3></div>
+    <table>
+        <thead><tr><th>Member</th><th>Book</th><th>Requested</th><th>Available</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for r in pending_borrows %}
+        <tr>
+            <td><strong>{{ r.member }}</strong></td>
+            <td>{{ r.book.title }}<br><small style="color:#8B7355;">{{ r.book.author }}</small></td>
+            <td>{{ r.request_date|date:"d M Y" }}</td>
+            <td>{% if r.book.is_available %}<span class="badge badge-available">{{ r.book.available_copies }} available</span>{% else %}<span class="badge badge-unavailable">Out of stock</span>{% endif %}</td>
+            <td style="display:flex;gap:8px;">
+                {% if r.book.is_available %}<a href="{% url 'approve_borrow' r.pk %}" class="btn-green"><i class="fas fa-check"></i> Approve</a>{% endif %}
+                <a href="{% url 'reject_borrow' r.pk %}" class="btn-red"><i class="fas fa-times"></i> Reject</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+        <h3>📖 Active Borrows ({{ active_borrows.count }})</h3>
+        <a href="{% url 'book_add' %}" class="btn-brown" style="font-size:0.8rem;padding:7px 14px;"><i class="fas fa-plus"></i> Add Book</a>
+    </div>
+    <table>
+        <thead><tr><th>Member</th><th>Book</th><th>Issued</th><th>Due</th><th>Fine</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for r in active_borrows %}
+        <tr>
+            <td><strong>{{ r.member }}</strong></td>
+            <td>{{ r.book.title }}</td>
+            <td>{{ r.issue_date|date:"d M Y" }}</td>
+            <td>{{ r.due_date|date:"d M Y" }}{% if r.due_date and r.due_date < today %} <span class="badge badge-rejected">Overdue</span>{% endif %}</td>
+            <td>{% if r.fine > 0 %}<strong style="color:#dc2626;">৳{{ r.fine }}</strong>{% else %}—{% endif %}</td>
+            <td>
+                {% if r.status == 'return_requested' %}
+                    <span class="badge badge-pending">↩ Return Requested</span>
+                {% else %}
+                    <span class="badge badge-approved">Active</span>
+                {% endif %}
+            </td>
+            <td><a href="{% url 'return_book' r.pk %}" class="btn-blue"><i class="fas fa-undo"></i> Return</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;color:#8B7355;padding:30px;">No active borrows</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:24px;">
+    <div class="card">
+        <div class="card-header"><h3>📈 Weekly Borrowing Activity</h3></div>
+        <div class="card-body"><canvas id="weeklyChart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3>🏷️ Category Popularity</h3></div>
+        <div class="card-body">
+            {% for cat in cat_data %}
+            <div style="margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:0.85rem;color:var(--brown-dark);">{{ cat.name }}</span>
+                    <span style="font-size:0.8rem;color:#8B7355;">{{ cat.borrow_count }}</span>
+                </div>
+                <div style="background:var(--cream-dark);border-radius:3px;height:8px;">
+                    <div style="background:var(--brown);border-radius:3px;height:8px;width:{{ cat.borrow_count }}0%;max-width:100%;"></div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color:#8B7355;font-size:0.88rem;">No data yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3>🏆 Most Borrowed Books</h3></div>
+        <table>
+            <thead><tr><th>#</th><th>Book</th><th>Times</th></tr></thead>
+            <tbody>
+            {% for book in most_borrowed %}
+            <tr>
+                <td style="color:var(--brown);font-weight:700;">{{ forloop.counter }}</td>
+                <td><strong>{{ book.title|truncatechars:30 }}</strong><br><small style="color:#8B7355;">{{ book.author }}</small></td>
+                <td><span class="badge badge-approved">{{ book.times_borrowed }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" style="text-align:center;color:#8B7355;padding:20px;">No data yet</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3>📋 Recent Loans</h3></div>
+        <table>
+            <thead><tr><th>Member</th><th>Book</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for loan in recent_loans %}
+            <tr>
+                <td><strong>{{ loan.member }}</strong></td>
+                <td>{{ loan.book.title|truncatechars:25 }}</td>
+                <td><span class="badge badge-{{ loan.status }}">{{ loan.get_status_display }}</span></td>
+                <td>{{ loan.request_date|date:"d M" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:#8B7355;padding:20px;">No loans yet</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const weeklyData = {{ weekly_data|safe }};
+new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+        labels: weeklyData.map(d => d.day),
+        datasets: [{
+            label: 'Borrows',
+            data: weeklyData.map(d => d.count),
+            backgroundColor: 'rgba(139,105,20,0.7)',
+            borderColor: '#8B6914',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F0EAE0' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

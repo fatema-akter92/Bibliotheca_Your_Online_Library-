@@ -1,0 +1,74 @@
+{% extends 'library/base.html' %}
+{% block title %}Books — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <div><h1>Books</h1><p>Manage your library collection</p></div>
+    <a href="{% url 'book_add' %}" class="btn-brown"><i class="fas fa-plus"></i> Add Book</a>
+</div>
+
+<form method="GET" style="display:flex;gap:12px;margin-bottom:22px;flex-wrap:wrap;">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search..."
+        style="flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-size:0.9rem;background:white;outline:none;">
+    <select name="category" style="padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-size:0.88rem;background:white;outline:none;">
+        <option value="">All Categories</option>
+        {% for cat in categories %}<option value="{{ cat.pk }}" {% if selected_category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn-brown"><i class="fas fa-search"></i></button>
+    {% if search or selected_category %}<a href="{% url 'book_list' %}" class="btn-outline">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Copies</th>
+                    <th>Available</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for book in books %}
+            <tr>
+                <td><strong>{{ book.title }}</strong></td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.category.name|default:"—" }}</td>
+                <td>{{ book.total_copies }}</td>
+                <td>
+                    {% if book.is_available %}
+                        <span class="badge badge-available">{{ book.available_copies }}</span>
+                    {% else %}
+                        <span class="badge badge-unavailable">0</span>
+                    {% endif %}
+                </td>
+                <td style="display:flex;gap:8px;align-items:center;">
+                    <a href="{% url 'book_detail' book.pk %}" class="btn-blue" style="font-size:0.75rem;padding:5px 11px;">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'book_edit' book.pk %}" class="btn-outline" style="font-size:0.75rem;padding:5px 11px;">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form method="POST" action="{% url 'book_delete' book.pk %}" style="margin:0;" onsubmit="return confirm('Delete \'{{ book.title }}\'? This cannot be undone.')">
+                        {% csrf_token %}
+                        <button type="submit" style="background:#e74c3c;color:white;border:none;border-radius:6px;padding:5px 11px;font-size:0.75rem;cursor:pointer;line-height:1.4;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center;color:#8B7355;padding:30px;">
+                    No books yet. <a href="{% url 'book_add' %}" style="color:var(--brown);font-weight:700;">Add one →</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

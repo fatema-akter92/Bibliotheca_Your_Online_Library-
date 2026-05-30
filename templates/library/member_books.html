@@ -1,0 +1,167 @@
+{% extends 'library/base.html' %}
+{% block title %}Browse Books — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>📚 Browse Books</h1>
+    <p>Discover your next great read</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="stat-card"><div class="stat-icon si-brown">📚</div><div><div class="stat-num">{{ total_books }}</div><div class="stat-lbl">Total Books</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-num">{{ available_books }}</div><div class="stat-lbl">Available Now</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red">🏷️</div><div><div class="stat-num">{{ categories.count }}</div><div class="stat-lbl">Categories</div></div></div>
+</div>
+
+{% if not member.is_approved %}
+<div class="pending-banner" style="margin-bottom:20px;">
+    <div class="pb-icon">📋</div>
+    <div><h4>Membership Pending</h4><p>You can browse all books. Once approved you can borrow or reserve.</p></div>
+</div>
+{% endif %}
+
+<form method="GET" style="display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap;">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search by title or author..."
+        style="flex:1;min-width:220px;padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.9rem;background:white;outline:none;">
+    <select name="category"
+        style="padding:10px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.88rem;background:white;outline:none;color:var(--brown-deep);">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat.pk }}" {% if selected_category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn-brown"><i class="fas fa-search"></i> Search</button>
+    {% if search or selected_category %}
+    <a href="{% url 'member_books' %}" class="btn-outline"><i class="fas fa-times"></i> Clear</a>
+    {% endif %}
+</form>
+
+{% if search or selected_category %}
+
+<div style="margin-bottom:16px;">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--brown-dark);">
+        Search Results <span style="font-size:0.85rem;font-weight:400;color:#8B7355;">({{ books.count }} found)</span>
+    </h2>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;margin-bottom:32px;">
+    {% for book in books %}
+    <a href="{% url 'member_book_detail' book.pk %}" style="text-decoration:none;display:block;">
+        <div style="background:white;border:1px solid #D6E8F5;border-radius:14px;overflow:hidden;transition:all 0.25s;height:100%;box-shadow:0 2px 8px rgba(100,160,210,0.08);">
+            <div style="height:160px;background:linear-gradient(160deg,#EBF5FF 0%,#C8E3F8 60%,#A8D4F5 100%);display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid #D6E8F5;">
+                <div style="text-align:center;">
+                    <div style="font-size:3rem;margin-bottom:4px;">📘</div>
+                    <div style="font-size:0.65rem;color:#5B9EC9;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Book</div>
+                </div>
+                <div style="position:absolute;top:10px;right:10px;">
+                    {% if book.is_available %}
+                    <span style="background:#059669;color:white;font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;">Available</span>
+                    {% else %}
+                    <span style="background:#dc2626;color:white;font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;">Unavailable</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="padding:14px;background:white;">
+                <div style="font-family:'Playfair Display',serif;font-size:0.93rem;font-weight:700;color:#1A2E40;margin-bottom:4px;line-height:1.3;">{{ book.title }}</div>
+                <div style="font-size:0.77rem;color:#5B9EC9;margin-bottom:8px;font-style:italic;">{{ book.author|default:"Unknown Author" }}</div>
+                {% if book.category %}
+                <div style="font-size:0.68rem;background:#EBF5FF;border:1px solid #C8E3F8;color:#2E7BB5;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:8px;">{{ book.category.name }}</div>
+                {% endif %}
+                <div style="font-size:0.74rem;color:#7B9BB5;"><i class="fas fa-copy" style="margin-right:4px;"></i>{{ book.available_copies }}/{{ book.total_copies }} copies</div>
+            </div>
+        </div>
+    </a>
+    {% empty %}
+    <div style="grid-column:1/-1;text-align:center;padding:60px;color:#8B7355;">
+        <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+        <p>No books found.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+
+{% for cat in categories_with_books %}
+<div style="margin-bottom:40px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--brown-dark);display:flex;align-items:center;gap:8px;">
+            🏷️ {{ cat.name }}
+            <span style="font-size:0.78rem;font-weight:400;color:#5B9EC9;background:#EBF5FF;border:1px solid #C8E3F8;padding:2px 10px;border-radius:20px;">{{ cat.book_list|length }} books</span>
+        </h2>
+        <a href="?category={{ cat.pk }}" style="color:#2E7BB5;font-size:0.82rem;font-weight:700;text-decoration:none;">View all →</a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;">
+        {% for book in cat.book_list %}
+        <a href="{% url 'member_book_detail' book.pk %}" style="text-decoration:none;display:block;">
+            <div style="background:white;border:1px solid #D6E8F5;border-radius:14px;overflow:hidden;transition:all 0.25s;height:100%;box-shadow:0 2px 8px rgba(100,160,210,0.08);">
+                <div style="height:160px;background:linear-gradient(160deg,#EBF5FF 0%,#C8E3F8 60%,#A8D4F5 100%);display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid #D6E8F5;">
+                    <div style="text-align:center;">
+                        <div style="font-size:3rem;margin-bottom:4px;">📖</div>
+                        <div style="font-size:0.65rem;color:#5B9EC9;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Book</div>
+                    </div>
+                    <div style="position:absolute;top:10px;right:10px;">
+                        {% if book.is_available %}
+                        <span style="background:#059669;color:white;font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;">Available</span>
+                        {% else %}
+                        <span style="background:#dc2626;color:white;font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;">Unavailable</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="padding:14px;background:white;">
+                    <div style="font-family:'Playfair Display',serif;font-size:0.93rem;font-weight:700;color:#1A2E40;margin-bottom:4px;line-height:1.3;">{{ book.title }}</div>
+                    <div style="font-size:0.77rem;color:#5B9EC9;margin-bottom:8px;font-style:italic;">{{ book.author|default:"Unknown Author" }}</div>
+                    <div style="font-size:0.74rem;color:#7B9BB5;"><i class="fas fa-copy" style="margin-right:4px;"></i>{{ book.available_copies }}/{{ book.total_copies }} copies</div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+{% if uncategorized_books %}
+<div style="margin-bottom:40px;">
+    <div style="display:flex;align-items:center;margin-bottom:18px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--brown-dark);display:flex;align-items:center;gap:8px;">
+            📚 Uncategorized
+            <span style="font-size:0.78rem;font-weight:400;color:#5B9EC9;background:#EBF5FF;border:1px solid #C8E3F8;padding:2px 10px;border-radius:20px;">{{ uncategorized_books|length }} books</span>
+        </h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;">
+        {% for book in uncategorized_books %}
+        <a href="{% url 'member_book_detail' book.pk %}" style="text-decoration:none;display:block;">
+            <div style="background:white;border:1px solid #D6E8F5;border-radius:14px;overflow:hidden;transition:all 0.25s;height:100%;box-shadow:0 2px 8px rgba(100,160,210,0.08);">
+                <div style="height:160px;background:linear-gradient(160deg,#EBF5FF 0%,#C8E3F8 60%,#A8D4F5 100%);display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid #D6E8F5;">
+                    <div style="text-align:center;">
+                        <div style="font-size:3rem;margin-bottom:4px;">📖</div>
+                        <div style="font-size:0.65rem;color:#5B9EC9;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Book</div>
+                    </div>
+                    <div style="position:absolute;top:10px;right:10px;">
+                        {% if book.is_available %}
+                        <span style="background:#059669;color:white;font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;">Available</span>
+                        {% else %}
+                        <span style="background:#dc2626;color:white;font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;">Unavailable</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="padding:14px;background:white;">
+                    <div style="font-family:'Playfair Display',serif;font-size:0.93rem;font-weight:700;color:#1A2E40;margin-bottom:4px;line-height:1.3;">{{ book.title }}</div>
+                    <div style="font-size:0.77rem;color:#5B9EC9;margin-bottom:8px;font-style:italic;">{{ book.author|default:"Unknown Author" }}</div>
+                    <div style="font-size:0.74rem;color:#7B9BB5;"><i class="fas fa-copy" style="margin-right:4px;"></i>{{ book.available_copies }}/{{ book.total_copies }} copies</div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not categories_with_books and not uncategorized_books %}
+<div style="text-align:center;padding:80px;color:#8B7355;">
+    <div style="font-size:4rem;margin-bottom:16px;">📚</div>
+    <p>No books in the library yet.</p>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

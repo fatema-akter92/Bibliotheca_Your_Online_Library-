@@ -1,0 +1,29 @@
+{% extends 'library/base.html' %}
+{% block title %}My History — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>My Borrow History</h1><p>All your library activity</p></div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table>
+            <thead><tr><th>Book</th><th>Status</th><th>Requested</th><th>Issued</th><th>Due</th><th>Returned</th><th>Fine</th></tr></thead>
+            <tbody>
+            {% for r in records %}
+            <tr>
+                <td><strong>{{ r.book.title }}</strong><br><small style="color:#8B7355;">{{ r.book.author }}</small></td>
+                <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+                <td>{{ r.request_date|date:"d M" }}</td>
+                <td>{{ r.issue_date|date:"d M"|default:"—" }}</td>
+                <td>{{ r.due_date|date:"d M"|default:"—" }}</td>
+                <td>{{ r.return_date|date:"d M"|default:"—" }}</td>
+                <td>{% if r.fine > 0 %}<strong style="color:#dc2626;">৳{{ r.fine }}</strong>{% else %}—{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align:center;color:#8B7355;padding:30px;">No history yet. <a href="{% url 'member_books' %}" style="color:var(--brown);font-weight:700;">Browse books →</a></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

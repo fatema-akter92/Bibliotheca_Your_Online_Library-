@@ -1,0 +1,30 @@
+{% extends 'library/base.html' %}
+{% block title %}{{ book.title }} — Bibliotheca{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:16px;"><a href="{% url 'book_list' %}" style="color:var(--brown);text-decoration:none;font-size:0.85rem;"><i class="fas fa-arrow-left"></i> Back to Books</a></div>
+
+<div style="background:white;border:1px solid var(--cream-dark);border-radius:14px;padding:36px;max-width:650px;">
+    <div style="font-size:3.5rem;margin-bottom:16px;">📖</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--brown-deep);margin-bottom:6px;">{{ book.title }}</h1>
+    <p style="color:#6B5740;font-size:1rem;margin-bottom:18px;">by {{ book.author }}</p>
+
+    <div style="display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;">
+        {% if book.category %}<span class="badge" style="background:var(--cream);color:var(--brown);border:1px solid var(--brown-light);">{{ book.category.name }}</span>{% endif %}
+        {% if book.is_available %}<span class="badge badge-available">{{ book.available_copies }} of {{ book.total_copies }} available</span>
+        {% else %}<span class="badge badge-unavailable">Not available</span>{% endif %}
+        {% if book.isbn %}<span class="badge" style="background:var(--cream-dark);color:var(--brown-dark);">ISBN: {{ book.isbn }}</span>{% endif %}
+    </div>
+
+    {% if book.description %}<p style="color:var(--brown-deep);line-height:1.8;margin-bottom:22px;">{{ book.description }}</p>{% endif %}
+
+    <p style="font-size:0.8rem;color:#8B7355;">Added: {{ book.added_date|date:"d M Y" }}</p>
+
+    {% if request.user.is_staff %}
+    <div style="margin-top:22px;display:flex;gap:12px;">
+        <a href="{% url 'book_edit' book.pk %}" class="btn-brown"><i class="fas fa-edit"></i> Edit</a>
+        <a href="{% url 'book_list' %}" class="btn-outline">Back</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

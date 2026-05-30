@@ -1,0 +1,27 @@
+{% extends 'library/base.html' %}
+{% block title %}Members — Bibliotheca{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>Members</h1><p>All approved library members</p></div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Phone</th><th>Joined</th><th>Total Borrows</th></tr></thead>
+            <tbody>
+            {% for m in members %}
+            <tr>
+                <td><strong>{{ m.user.get_full_name|default:m.user.username }}</strong></td>
+                <td>{{ m.user.username }}</td>
+                <td>{{ m.phone|default:"—" }}</td>
+                <td>{{ m.joined_date|date:"d M Y" }}</td>
+                <td><span class="badge badge-approved">{{ m.total_borrows }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;color:#8B7355;padding:30px;">No approved members yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

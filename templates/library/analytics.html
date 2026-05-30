@@ -1,0 +1,62 @@
+{% extends 'library/base.html' %}
+{% block title %}Analytics — Bibliotheca{% endblock %}
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+
+<div class="page-header"><h1>Analytics</h1><p>Library insights and statistics</p></div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;">
+    <div class="stat-card"><div class="stat-icon si-brown">📚</div><div><div class="stat-num">{{ total_books }}</div><div class="stat-lbl">Total Books</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-amber">👥</div><div><div class="stat-num">{{ total_members }}</div><div class="stat-lbl">Active Members</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">📋</div><div><div class="stat-num">{{ total_borrows }}</div><div class="stat-lbl">Total Borrows</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red">✅</div><div><div class="stat-num">{{ total_returned }}</div><div class="stat-lbl">Books Returned</div></div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;">
+    <div class="card">
+        <div class="card-header"><h3>Books by Category</h3></div>
+        <div class="card-body"><canvas id="catChart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3>Monthly Borrow Activity</h3></div>
+        <div class="card-body"><canvas id="monthChart" height="220"></canvas></div>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+const brown = '#8B6914', brownDeep = '#3B2F1A', cream = '#FAF7F2';
+
+new Chart(document.getElementById('catChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ cat_labels|safe }},
+        datasets: [{
+            data: {{ cat_values|safe }},
+            backgroundColor: ['#3B2F1A','#5C4A1E','#8B6914','#C8A882','#D4B896','#E8D5B7','#6B4C2A','#4A3520'],
+            borderWidth: 2, borderColor: '#fff'
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Lato' }, color: '#3B2F1A' } } } }
+});
+
+new Chart(document.getElementById('monthChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ monthly_labels|safe }},
+        datasets: [{ label: 'Borrows', data: {{ monthly_values|safe }},
+            backgroundColor: 'rgba(139,105,20,0.7)', borderColor: '#8B6914',
+            borderWidth: 1, borderRadius: 6 }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, grid: { color: '#F0EAE0' }, ticks: { color: '#6B5740' } },
+                  x: { grid: { display: false }, ticks: { color: '#6B5740' } } }
+    }
+});
+</script>
+{% endblock %}

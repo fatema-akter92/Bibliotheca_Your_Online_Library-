@@ -1,0 +1,16 @@
+{% extends 'library/base.html' %}
+{% block title %}Delete Book{% endblock %}
+{% block content %}
+<div style="max-width:500px;margin:60px auto;background:white;border-radius:14px;padding:36px;border:1px solid var(--cream-dark);text-align:center;">
+    <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+    <h2 style="font-family:'Playfair Display',serif;color:var(--brown-dark);margin-bottom:10px;">Delete Book?</h2>
+    <p style="color:#6B5740;margin-bottom:24px;">Are you sure you want to delete <strong>"{{ book.title }}"</strong>? This cannot be undone.</p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" style="background:#e74c3c;color:white;border:none;border-radius:8px;padding:10px 24px;font-size:0.9rem;cursor:pointer;font-weight:600;">Yes, Delete</button>
+        </form>
+        <a href="{% url 'book_list' %}" class="btn-outline">Cancel</a>
+    </div>
+</div>
+{% endblock %}

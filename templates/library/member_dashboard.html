@@ -1,0 +1,239 @@
+{% extends 'library/base.html' %}
+{% block title %}My Dashboard — Bibliotheca{% endblock %}
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <div>
+        <h1>Welcome, {{ member.user.get_full_name|default:member.user.username }}! 👋</h1>
+        <p>Your personal library dashboard</p>
+    </div>
+    <a href="{% url 'member_profile' %}" class="btn-outline"><i class="fas fa-user"></i> My Profile</a>
+</div>
+
+{% if not member.is_approved %}
+<div class="pending-banner">
+    <div class="pb-icon">⏳</div>
+    <div>
+        <h4>Membership Pending Approval</h4>
+        <p>You can browse all books, view authors, and use AI recommendations. Once the admin approves your membership, you can request borrows.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- STAT CARDS ROW 1 -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;">
+    <div class="stat-card"><div class="stat-icon si-brown">📚</div><div><div class="stat-num">{{ total_books }}</div><div class="stat-lbl">Total Books</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-num">{{ available_books }}</div><div class="stat-lbl">Available</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red">🏷️</div><div><div class="stat-num">{{ total_categories }}</div><div class="stat-lbl">Categories</div></div></div>
+</div>
+
+<!-- STAT CARDS ROW 2 -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+    <div class="stat-card"><div class="stat-icon si-brown">📖</div><div><div class="stat-num">{{ active_borrows.count }}</div><div class="stat-lbl">Active Borrows</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-amber">⏳</div><div><div class="stat-num">{{ pending_requests.count }}</div><div class="stat-lbl">Pending</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">📥</div><div><div class="stat-num">{{ total_returned }}</div><div class="stat-lbl">Returned</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red">🔖</div><div><div class="stat-num">{{ my_reservations.count }}</div><div class="stat-lbl">Reservations</div></div></div>
+</div>
+
+<!-- ACTIVE BORROWS WITH RETURN BUTTON -->
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+        <h3>📖 My Active Books</h3>
+        <a href="{% url 'member_books' %}" class="btn-brown" style="font-size:0.8rem;padding:7px 16px;"><i class="fas fa-search"></i> Browse More</a>
+    </div>
+    <table>
+        <thead><tr><th>Book</th><th>Author</th><th>Issued</th><th>Due Date</th><th>Fine</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for r in active_borrows %}
+        <tr>
+            <td><strong>{{ r.book.title }}</strong></td>
+            <td style="color:#8B7355;">{{ r.book.author }}</td>
+            <td>{{ r.issue_date|date:"d M Y" }}</td>
+            <td>{{ r.due_date|date:"d M Y" }}{% if r.due_date < today %} <span class="badge badge-rejected">Overdue</span>{% endif %}</td>
+            <td>{% if r.fine > 0 %}<span style="color:#dc2626;font-weight:700;">৳{{ r.fine }}</span>{% else %}—{% endif %}</td>
+            <td>
+                <a href="{% url 'member_return_request' r.pk %}"
+                   class="btn-blue" style="font-size:0.75rem;padding:5px 11px;"
+                   onclick="return confirm('Send return request for this book?')">
+                    <i class="fas fa-undo"></i> Return
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;color:#8B7355;padding:24px;">No active borrows. <a href="{% url 'member_books' %}" style="color:var(--brown);font-weight:700;">Browse books →</a></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- PENDING REQUESTS -->
+{% if pending_requests %}
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>⏳ Pending Borrow Requests</h3></div>
+    <table>
+        <thead><tr><th>Book</th><th>Author</th><th>Requested On</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for r in pending_requests %}
+        <tr>
+            <td><strong>{{ r.book.title }}</strong></td>
+            <td style="color:#8B7355;">{{ r.book.author }}</td>
+            <td>{{ r.request_date|date:"d M Y" }}</td>
+            <td><span class="badge badge-pending">Waiting for Approval</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- RESERVATIONS -->
+{% if my_reservations %}
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+        <h3>🔖 My Reservations</h3>
+        <a href="{% url 'member_reservations' %}" style="color:var(--brown);font-size:0.82rem;text-decoration:none;font-weight:700;">View all →</a>
+    </div>
+    <table>
+        <thead><tr><th>Book</th><th>Reserved On</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for res in my_reservations %}
+        <tr>
+            <td><strong>{{ res.book.title }}</strong><br><small style="color:#8B7355;">{{ res.book.author }}</small></td>
+            <td>{{ res.reserved_date|date:"d M Y" }}</td>
+            <td>
+                {% if res.status == 'ready' %}
+                    <span class="badge badge-approved">✅ Ready for Pickup!</span>
+                {% else %}
+                    <span class="badge badge-pending">⏳ Waiting</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'cancel_reservation' res.pk %}" class="btn-red"
+                   style="font-size:0.72rem;padding:4px 10px;"
+                   onclick="return confirm('Cancel reservation?')">
+                    <i class="fas fa-times"></i>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- CHARTS ROW -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:24px;">
+    <div class="card">
+        <div class="card-header"><h3>📈 My Weekly Activity</h3></div>
+        <div class="card-body"><canvas id="weeklyChart" height="220"></canvas></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3>🏷️ My Favourite Categories</h3></div>
+        <div class="card-body">
+            {% for cat in cat_data %}
+            <div style="margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:0.85rem;color:var(--brown-dark);">{{ cat.name }}</span>
+                    <span style="font-size:0.8rem;color:#8B7355;">{{ cat.borrow_count }}</span>
+                </div>
+                <div style="background:var(--cream-dark);border-radius:3px;height:8px;">
+                    <div style="background:var(--brown);border-radius:3px;height:8px;width:{{ cat.borrow_count }}0%;max-width:100%;"></div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align:center;padding:30px;color:#8B7355;">
+                <p>No borrowing history yet.</p>
+                <a href="{% url 'member_books' %}" style="color:var(--brown);font-weight:700;">Browse books →</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- MOST BORROWED + RECENT LOANS -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:24px;">
+    <div class="card">
+        <div class="card-header"><h3>📋 Recent Loan Activity</h3></div>
+        <table>
+            <thead><tr><th>Book</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for loan in recent_loans %}
+            <tr>
+                <td><strong>{{ loan.book.title|truncatechars:25 }}</strong></td>
+                <td><span class="badge badge-{{ loan.status }}">{{ loan.get_status_display }}</span></td>
+                <td>{{ loan.request_date|date:"d M" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" style="text-align:center;color:#8B7355;padding:20px;">No activity yet</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3>📊 My Reading Summary</h3></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--cream);border-radius:10px;">
+                <span style="color:var(--brown-dark);font-size:0.88rem;font-weight:700;">📚 Total Borrowed</span>
+                <span style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--brown-deep);">{{ total_borrowed }}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--cream);border-radius:10px;">
+                <span style="color:var(--brown-dark);font-size:0.88rem;font-weight:700;">✅ Returned</span>
+                <span style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#059669;">{{ total_returned }}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--cream);border-radius:10px;">
+                <span style="color:var(--brown-dark);font-size:0.88rem;font-weight:700;">📖 Currently Reading</span>
+                <span style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#2563eb;">{{ active_borrows.count }}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--cream);border-radius:10px;">
+                <span style="color:var(--brown-dark);font-size:0.88rem;font-weight:700;">💰 Total Fines</span>
+                <span style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#dc2626;">৳{{ total_fines|floatformat:0 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="card">
+    <div class="card-header"><h3>⚡ Quick Actions</h3></div>
+    <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="{% url 'member_books' %}" class="btn-brown"><i class="fas fa-book-open"></i> Browse Books</a>
+        <a href="{% url 'member_reservations' %}" class="btn-outline"><i class="fas fa-bookmark"></i> My Reservations</a>
+        <a href="{% url 'ai_recommender' %}" class="btn-outline"><i class="fas fa-robot"></i> AI Recommendations</a>
+        <a href="{% url 'analytics' %}" class="btn-outline"><i class="fas fa-chart-bar"></i> Analytics</a>
+        
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ weekly_data|safe }}.map(d => d.day),
+        datasets: [{
+            label: 'Borrows',
+            data: {{ weekly_data|safe }}.map(d => d.count),
+            backgroundColor: 'rgba(139,105,20,0.7)',
+            borderColor: '#8B6914',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F0EAE0' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

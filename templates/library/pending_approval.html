@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Approval — Bibliotheca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--cream:#FAF7F2;--brown-light:#C8A882;--brown:#8B6914;--brown-dark:#5C4A1E;--brown-deep:#3B2F1A;}
+        body{font-family:'Lato',sans-serif;background:var(--cream);min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;}
+        .box{background:white;border-radius:20px;padding:60px 50px;max-width:480px;box-shadow:0 10px 40px rgba(59,47,26,0.12);}
+        .icon{font-size:4rem;margin-bottom:20px;}
+        h2{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--brown-deep);margin-bottom:10px;}
+        p{color:#6B5740;font-size:0.95rem;line-height:1.7;margin-bottom:6px;}
+        .status-pill{display:inline-block;background:#fef3c7;color:#92400e;padding:6px 18px;border-radius:20px;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:16px 0;}
+        .btn{display:inline-block;margin-top:20px;padding:11px 24px;background:var(--brown-deep);color:var(--cream);border-radius:8px;text-decoration:none;font-size:0.88rem;font-weight:700;transition:background 0.15s;}
+        .btn:hover{background:var(--brown);color:white;}
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="icon">⏳</div>
+    <h2>Membership Pending</h2>
+    <p>Your account has been created successfully!</p>
+    <p>The admin will review and approve your membership request soon.</p>
+    <div class="status-pill">Awaiting Admin Approval</div>
+    <p style="font-size:0.82rem;color:#9B8B70;">You'll be able to log in once approved.</p>
+    <br>
+    <a href="{% url 'logout' %}" class="btn">← Back to Home</a>
+</div>
+</body>
+</html>

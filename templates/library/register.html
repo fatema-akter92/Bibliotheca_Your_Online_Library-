@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Bibliotheca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root{--cream:#FAF7F2;--cream-dark:#F0EAE0;--brown-light:#C8A882;--brown:#8B6914;--brown-dark:#5C4A1E;--brown-deep:#3B2F1A;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Lato',sans-serif;background:var(--cream);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+        .auth-wrap{display:flex;width:960px;max-width:100%;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(59,47,26,0.18);}
+        .auth-left{flex:0 0 320px;background:linear-gradient(160deg,var(--brown-deep),var(--brown-dark),var(--brown));padding:50px 36px;display:flex;flex-direction:column;justify-content:space-between;}
+        .auth-left .brand{font-family:'Playfair Display',serif;color:var(--brown-light);font-size:1.4rem;text-decoration:none;}
+        .auth-left h2{font-family:'Playfair Display',serif;color:var(--cream);font-size:1.8rem;line-height:1.3;}
+        .auth-left ul{list-style:none;margin-top:16px;}
+        .auth-left ul li{color:rgba(250,247,242,0.6);font-size:0.84rem;padding:5px 0;display:flex;align-items:center;gap:8px;}
+        .auth-left ul li::before{content:'✓';color:var(--brown-light);font-weight:700;}
+        .auth-left .quote{border-top:1px solid rgba(200,168,130,0.2);padding-top:18px;font-style:italic;color:var(--brown-light);font-size:0.8rem;}
+        .auth-right{flex:1;background:white;padding:44px;}
+        .auth-right h3{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--brown-deep);margin-bottom:4px;}
+        .auth-right p{color:#6B5740;font-size:0.88rem;margin-bottom:24px;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+        .form-group{margin-bottom:14px;}
+        .form-group label{display:block;font-size:0.75rem;font-weight:700;color:var(--brown-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+        .form-group input,.form-group textarea{width:100%;padding:10px 13px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Lato',sans-serif;font-size:0.88rem;color:var(--brown-deep);background:var(--cream);outline:none;transition:border-color 0.15s;}
+        .form-group input:focus,.form-group textarea:focus{border-color:var(--brown-light);background:white;}
+        .form-group textarea{min-height:68px;resize:vertical;}
+        .btn-submit{width:100%;padding:13px;background:var(--brown-deep);color:var(--cream);border:none;border-radius:8px;font-family:'Playfair Display',serif;font-size:1rem;cursor:pointer;transition:all 0.15s;margin-top:6px;}
+        .btn-submit:hover{background:var(--brown);}
+        .auth-footer{text-align:center;margin-top:18px;font-size:0.85rem;color:#6B5740;}
+        .auth-footer a{color:var(--brown);font-weight:700;text-decoration:none;}
+        .alert{padding:10px 14px;border-radius:7px;font-size:0.84rem;margin-bottom:14px;background:#fee2e2;color:#7f1d1d;border:1px solid #fca5a5;}
+        @media(max-width:700px){.auth-left{display:none;}.auth-right{padding:32px 24px;}.form-row{grid-template-columns:1fr;}}
+    </style>
+</head>
+<body>
+<div class="auth-wrap">
+    <div class="auth-left">
+        <a href="{% url 'landing' %}" class="brand">📚 Bibliotheca</a>
+        <div>
+            <h2>Join Our Library</h2>
+            <ul>
+                <li>Browse thousands of books</li>
+                <li>Request borrows online</li>
+                <li>Get AI recommendations</li>
+                <li>Track your reading history</li>
+            </ul>
+        </div>
+        <div class="quote">"The more that you read, the more things you will know."<br>— Dr. Seuss</div>
+    </div>
+    <div class="auth-right">
+        <h3>Create Account</h3>
+        <p>Fill in your details — admin will approve your membership</p>
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" name="first_name" placeholder="Rahim">
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" name="last_name" placeholder="Uddin">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" name="username" placeholder="rahim123" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="rahim@email.com">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password *</label>
+                    <input type="password" name="password2" placeholder="••••••••" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone" placeholder="01XXXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" placeholder="Your address..."></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Register & Request Membership →</button>
+        </form>
+        <div class="auth-footer">Already have an account? <a href="{% url 'login' %}">Sign In</a></div>
+    </div>
+</div>
+</body>
+</html>

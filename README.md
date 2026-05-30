@@ -1,9 +1,9 @@
 # 📚 Bibliotheca  
 ### Your Smart Online Library Management System
 
-> A modern, role-based **Online Library System** designed to digitize book management, improve accessibility, and provide a smooth experience for both **Admins** and **Members**.
+A modern, role-based **Online Library System** designed to digitize book management, improve accessibility, and provide a smooth experience for both **Admins** and **Members**.
 
----
+
 
 ## About the Project
 
@@ -32,8 +32,8 @@ It simplifies:
 - Fast and simple filtering
 
 ### Role-Based Access
-- 🔐 Admin Panel
-- 👨‍🎓 Member Panel
+- Admin Panel
+- Member Panel
 - Secure access control system
 
 ---
@@ -42,11 +42,11 @@ It simplifies:
 
 Admins have full control over the system:
 
-- 📊 Dashboard overview
-- 📚 Manage books (CRUD operations)
-- 👥 Manage users
-- 🗂 Organize library data
-- ⚙ System control & maintenance
+- Dashboard overview
+- Manage books (CRUD operations)
+- Manage users
+- Organize library data
+- System control & maintenance
 
 ---
 
@@ -54,9 +54,9 @@ Admins have full control over the system:
 
 Members can easily interact with the library:
 
-- 📖 Browse available books
-- 🔍 Search books quickly
-- 📘 View book details
-- 🎯 Simple and clean user interface
+- Browse available books
+- Search books quickly
+- View book details
+- Simple and clean user interface
 
 
